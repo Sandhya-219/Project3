@@ -1,0 +1,59 @@
+﻿@page "/userlistpage"
+@using Project3.Data
+@inject HttpClient Http
+<h3>UserList</h3>
+
+<EditForm Model="user" 
+          OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form">
+        <label>User Id</label>
+       <InputNumber @bind-Value="user.userId" class="form-control" />
+    </div>
+
+    <div class="form">
+        <label>User Name</label>
+        <InputText @bind-Value="user.userName" class="form-control" />
+    </div>
+
+    <div class="form">
+        <label>Email</label>
+        <InputText @bind-Value="user.email" class="form-control" />
+    </div>
+
+    <div class="form">
+        <label>Phone Number</label>
+        <InputNumber @bind-Value="user.phoneNumber" class="form-control" />
+    </div>
+
+    <div class="form">
+        <label>Address</label>
+        <InputText @bind-Value="user.address" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+    
+</EditForm>
+@code {
+
+    private UserList user = new UserList();
+    // private List<UserList> users = new List<UserList>();
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     users = await Http.GetFromJsonAsync<List<UserList>>("api/users");
+    // }
+
+    private async Task HandleValidSubmit()
+    {
+        var res = await Http.PostAsJsonAsync("api/users", user);
+
+        if (res.IsSuccessStatusCode)
+        {
+            var response = await res.Content.ReadAsStringAsync();
+            Console.WriteLine(response);
+        }
+    }
+}

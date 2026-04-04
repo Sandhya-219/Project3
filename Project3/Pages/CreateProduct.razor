@@ -1,0 +1,59 @@
+﻿@page "/createproduct"
+@using Project3.Data
+@inject HttpClient httpClient
+<h3>CreateProduct</h3>
+
+<EditForm Model="product" OnValidSubmit="HandleValidSubmit" FormName="newform">
+    <div class="form">
+        <label>Name</label>
+        <InputText @bind-Value="product.name" class="form-control" />
+    </div>
+
+    <div class="form">
+        <label>Price</label>
+        <InputNumber @bind-Value="product.data.price" class="form-control" />
+    </div>
+
+    <div class="form">
+        <label>Year</label>
+        <InputNumber @bind-Value="product.data.year" class="form-control" />
+    </div>
+
+    <div class="form">
+        <label>CPU Model</label>
+        <InputText @bind-Value="product.data.cpuModel" class="form-control" />
+    </div>
+
+    <div class="form">
+        <label>Hard Disk Size</label>
+        <InputText @bind-Value="product.data.hardDiskSize" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+
+</EditForm>
+
+@code {
+
+    private Product product = new Product();
+    protected override void OnInitialized()
+    {
+        product = new Product
+        {
+            data = new productData()
+        };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var res = await httpClient.PostAsJsonAsync("objects", product);
+
+        if (res.IsSuccessStatusCode)
+        {
+            var response = await res.Content.ReadAsStringAsync();
+            Console.WriteLine(response);
+        }
+    }
+
+
+}
