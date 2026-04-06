@@ -3,6 +3,10 @@
 @inject HttpClient Http
 <h3>UserList</h3>
 
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card shadow-lg p-4 rounded-4" style="width:500px;">
+        <h4 class="text-center text-dark fw-bold mb-4">Create User</h4>
+    
 <EditForm Model="user" 
           OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -15,30 +19,59 @@
 
     <div class="form">
         <label>User Name</label>
-        <InputText @bind-Value="user.userName" class="form-control" />
+        <InputText @bind-Value="user.userName" class="form-control" placeholder="user name"/>
     </div>
 
     <div class="form">
         <label>Email</label>
-        <InputText @bind-Value="user.email" class="form-control" />
+        <InputText @bind-Value="user.email" class="form-control" placeholder="name@gmail.com" />
     </div>
 
     <div class="form">
         <label>Phone Number</label>
-        <InputNumber @bind-Value="user.phoneNumber" class="form-control" />
+        <InputText @bind-Value="user.phoneNumber" class="form-control" placeholder="phone number" />
     </div>
 
     <div class="form">
         <label>Address</label>
-        <InputText @bind-Value="user.address" class="form-control" />
+        <InputText @bind-Value="user.address" class="form-control" placeholder="address"/>
     </div>
-
-    <button type="submit" class="btn btn-primary">Submit</button>
-    
+    <br />
+    <div class="form-check">
+        <InputCheckbox class="form-check-input" @bind-Value="isChecked" />
+        <label class="form-check-label">
+            I Agree to submit my details
+        </label>
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary w-100 rounded-3" disabled="@(!isChecked || isLoading)">
+        @if (isLoading)
+        {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            <span>Submitting...</span>         
+        }
+        else
+        {
+            <span>Submit</span> 
+        }
+    </button>
 </EditForm>
+        
+    @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success mt-3 text-center">
+                @successMessage
+            </div>
+        }
+    </div>
+</div>
+
 @code {
 
     private UserList user = new UserList();
+    private bool isChecked = false;
+    private string successMessage = "";
+    private bool isLoading = false;
     // private List<UserList> users = new List<UserList>();
 
     // protected override async Task OnInitializedAsync()
@@ -48,12 +81,26 @@
 
     private async Task HandleValidSubmit()
     {
+        isLoading = true;
+        StateHasChanged();
+        await Task.Delay(500);
+
         var res = await Http.PostAsJsonAsync("api/users", user);
 
         if (res.IsSuccessStatusCode)
         {
-            var response = await res.Content.ReadAsStringAsync();
-            Console.WriteLine(response);
+            // var response = await res.Content.ReadAsStringAsync();
+            // Console.WriteLine(response);
+
+            successMessage = "User created successfully ✅";
+
+            user = new UserList();
+            isChecked = false;
         }
+        else
+        {
+            successMessage = "Something went wrong ❌";
+        }
+        isLoading = false;
     }
 }

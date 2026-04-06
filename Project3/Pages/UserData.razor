@@ -1,0 +1,161 @@
+﻿@page "/userdata"
+@using Project3.Data
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+
+<h3 class="text-center mt-3 text-primary">User Management</h3>
+
+<div class="container mt-4">
+
+    <!-- 🔍 Search + Reset -->
+    <div class="d-flex mb-3 gap-2">
+        <input class="form-control" placeholder="Search by name..." @bind="searchText" />
+
+        <button class="btn btn-primary" @onclick="SearchUsers">Search</button>
+        <button class="btn btn-secondary" @onclick="ResetUsers">Reset</button>
+    </div>
+
+    <!-- ✅ Alert -->
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert alert-info text-center">
+            @message
+        </div>
+    }
+
+    <!-- 🔄 Loading -->
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-primary"></div>
+        </div>
+    }
+    else
+    {
+        <!-- 📋 Table -->
+        <table class="table table-bordered table-striped text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var u in users)
+                {
+                    <tr>
+                        <td>@u.userId</td>
+                        <td>@u.userName</td>
+                        <td>@u.email</td>
+                        <td>@u.phoneNumber</td>
+                        <td>@u.address</td>
+
+                        <td>
+                            <button class="btn btn-warning btn-sm me-2"
+                                    @onclick="() => EditUser(u)">
+                                Edit
+                            </button>
+
+                            <button class="btn btn-danger btn-sm"
+                                    @onclick="() => DeleteUser(u.userId)">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+
+    private List<UserList> users = new();
+    private List<UserList> allUsers = new();
+
+    private string searchText = "";
+    private string message = "";
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    // 🔄 Load Users
+    private async Task LoadUsers()
+    {
+        isLoading = true;
+
+        var res = await Http.GetFromJsonAsync<List<UserList>>("api/users");
+
+        if (res != null)
+        {
+            users = res;
+            allUsers = res;
+        }
+
+        isLoading = false;
+    }
+
+    // 🔍 Search
+    private void SearchUsers()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            users = allUsers;
+            return;
+        }
+
+        users = allUsers
+            .Where(u => u.userName.ToLower().Contains(searchText.ToLower()))
+            .ToList();
+
+        message = $"{users.Count} result(s) found";
+    }
+
+    // 🔄 Reset
+    private void ResetUsers()
+    {
+        searchText = "";
+        users = allUsers;
+        message = "List reset successfully";
+    }
+
+    // ❌ Delete
+    private async Task DeleteUser(int id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Are you sure to delete?");
+        if (!confirm) return;
+
+        isLoading = true;
+
+        var res = await Http.DeleteAsync($"api/users/{id}");
+
+        if (res.IsSuccessStatusCode)
+        {
+            message = "User deleted successfully 🗑️";
+            await LoadUsers();
+        }
+        else
+        {
+            message = "Delete failed ❌";
+        }
+
+        isLoading = false;
+    }
+
+    // ✏️ Edit (navigate to edit page)
+    private void EditUser(UserList user)
+    {
+        message = $"Editing user: {user.userName}";
+        // Later: navigate to edit page
+        // NavigationManager.NavigateTo($"/edit/{user.userId}");
+    }
+}

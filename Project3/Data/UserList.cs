@@ -13,7 +13,7 @@ namespace Project3.Data
         [EmailAddress]
         public string email { get; set; }
         [Required]
-        public int phoneNumber { get; set; }
+        public string phoneNumber { get; set; }
         [Required]
         public string address { get; set; }
     }
